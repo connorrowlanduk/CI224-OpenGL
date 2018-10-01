@@ -1,6 +1,7 @@
 # CMake entry point
 cmake_minimum_required (VERSION 3.0)
-project (OPENGLTutorials)
+project (GLTutorials)
+
 
 find_package(OpenGL REQUIRED)
 
@@ -16,20 +17,11 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 
-
 # Compile external dependencies 
 add_subdirectory (external)
 
 # On Visual 2005 and above, this module can set the debug working directory
 cmake_policy(SET CMP0026 OLD)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/external/rpavlik-cmake-modules-fe2273")
-include(CreateLaunchers)
-include(MSVCMultipleProcessCompile) # /MP
-
-if(INCLUDE_DISTRIB)
-	add_subdirectory(distrib)
-endif(INCLUDE_DISTRIB)
-
 
 
 include_directories(
@@ -38,9 +30,9 @@ include_directories(
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
 	external/assimp-3.0.1270/include/
-	external/bullet-2.81-rev2613/src/
 	.
 )
+
 
 set(ALL_LIBS
 	${OPENGL_LIBRARY}
@@ -56,35 +48,53 @@ add_definitions(
 	-D_CRT_SECURE_NO_WARNINGS
 )
 
-FILE(GLOB SRC_FILES "playground/*.hlsl")
+#FILE(GLOB SRC_FILES "source/*.hlsl")
+
 set_source_files_properties(${SRC_FILES} PROPERTIES VS_TOOL_OVERRIDE "None")
 
-# Mycode
-add_executable(playground 
-	playground/playground.cpp
+# Example 1
+add_executable(example1 
+	${SRC_FILES}		
+	source/example1/example1.cpp
+	source/example1/SimpleFragmentShader.hlsl
+	source/example1/SimpleVertexShader.hlsl
+	common/objloader.cpp
+	common/objloader.hpp
+	common/controls.cpp
+	common/controls.hpp
 	common/shader.cpp
 	common/shader.hpp
 	common/texture.cpp
 	common/texture.hpp
-	${SRC_FILES}
-
-		
+	common/vboindexer.cpp
+	common/vboindexer.hpp
 )
-target_link_libraries(playground
+
+# working directories
+set_target_properties(example1 PROPERTIES COMPILE_DEFINITIONS "USE_ASSIMP")
+target_link_libraries(example1
 	${ALL_LIBS}
-)
-# Xcode and Visual working directories
-set_target_properties(playground PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/playground/")
-create_target_launcher(playground WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/playground/")
-target_link_libraries(playground
-	${ALL_LIBS}
+	assimp
 )
 
-SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*hlsl*" )
-SOURCE_GROUP(common REGULAR_EXPRESSION ".*/common/.*" )
 
+
+set_target_properties(example1 PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source/example1/")
+
+#message(${CMAKE_GENERATOR})
+if(NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
 add_custom_command(
-   TARGET playground POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/playground${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/playground/"
-)
+   TARGET example1 POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/example1${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/source/example1/"
+    COMMENT "Copying example1 files..."
 
+)
+endif()
+
+
+
+SOURCE_GROUP(common REGULAR_EXPRESSION ".*/common/.*" )
+SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*hlsl*" )
+
+
+ 
