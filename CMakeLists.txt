@@ -53,9 +53,11 @@ add_definitions(
 set_source_files_properties(${SRC_FILES} PROPERTIES VS_TOOL_OVERRIDE "None")
 
 # Example 1
-add_executable(example1 
-	${SRC_FILES}		
-	source/example1/example1.cpp
+add_executable(main 
+	${SRC_FILES}	
+	source/example1/main.cpp	
+	source/example1/View.cpp
+	source/example1/View.hpp
 	source/example1/SimpleFragmentShader.hlsl
 	source/example1/SimpleVertexShader.hlsl
 	common/objloader.cpp
@@ -71,22 +73,22 @@ add_executable(example1
 )
 
 # working directories
-set_target_properties(example1 PROPERTIES COMPILE_DEFINITIONS "USE_ASSIMP")
-target_link_libraries(example1
+set_target_properties(main PROPERTIES COMPILE_DEFINITIONS "USE_ASSIMP")
+target_link_libraries(main
 	${ALL_LIBS}
 	assimp
 )
 
 
 
-set_target_properties(example1 PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source/example1/")
+set_target_properties(main PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source/main/")
 
 #message(${CMAKE_GENERATOR})
 if(NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
 add_custom_command(
-   TARGET example1 POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/example1${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/source/example1/"
-    COMMENT "Copying example1 files..."
+   TARGET main POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/main${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/source/main/"
+    COMMENT "Copying main files..."
 
 )
 endif()
