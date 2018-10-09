@@ -55,11 +55,11 @@ set_source_files_properties(${SRC_FILES} PROPERTIES VS_TOOL_OVERRIDE "None")
 # Example 1
 add_executable(main 
 	${SRC_FILES}	
-	source/example1/main.cpp	
-	source/example1/View.cpp
-	source/example1/View.hpp
-	source/example1/SimpleFragmentShader.hlsl
-	source/example1/SimpleVertexShader.hlsl
+	source/main/main.cpp	
+	source/main/View.cpp
+	source/main/View.hpp
+	source/main/SimpleFragmentShader.hlsl
+	source/main/SimpleVertexShader.hlsl
 	common/objloader.cpp
 	common/objloader.hpp
 	common/controls.cpp
