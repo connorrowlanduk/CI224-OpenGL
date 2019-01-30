@@ -3,7 +3,7 @@
 View::View(int widtht, int heightt) {
     width = widtht;
     height = heightt;
-   
+    
 }
 View::~View() {
     
@@ -25,7 +25,7 @@ int View::initialise() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-
+    
     
     // Open a window and create its OpenGL context
     window = glfwCreateWindow(width, height, "My Game", NULL, NULL);
@@ -37,6 +37,8 @@ int View::initialise() {
     }
     glfwMakeContextCurrent(window);
     
+    // Initialize GLEW
+    glewExperimental = true; // Needed for core profile
     
     // Initialize GLEW
     if (glewInit() != GLEW_OK) {
@@ -59,6 +61,8 @@ int View::initialise() {
     // Dark blue background
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
     
+    programID = LoadShaders("SimpleVertexShader.hlsl", "SimpleFragmentShader.hlsl");
+    
     // Initialize GLEW
     glewExperimental = true; // Needed for core profile
     
@@ -68,11 +72,99 @@ int View::initialise() {
 
 void View::update() {
     
+    GLuint VertexArrayID;
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
+    
+    //    static const GLfloat g_vertex_buffer_data[] = {
+    //        -1.0f, -1.0f, 0.0f,
+    //        1.0f, -1.0f, 0.0f,
+    //        0.0f,  1.0f, 0.0f
+    //    };
+    
+    
+    std::vector<unsigned short> indices;
+    std::vector<glm::vec3> indexed_vertices;
+    std::vector<glm::vec2> indexed_uvs;
+    std::vector<glm::vec3> indexed_normals;
+    bool res = loadAssImp("..//Assets//sphere1.obj", indices, indexed_vertices, indexed_uvs, indexed_normals);
+    
+    GLuint vertexbuffer;
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+    
+    
+    
+    // One color for each vertex.
+    static const GLfloat g_color_buffer_data[] = {
+        1.0f,  0.0f,  0.0f,
+        1.0f,  0.0f,  0.0f,
+        1.0f,  0.0f,  0.0f
+    };
+    
+    GLuint colorbuffer;
+    glGenBuffers(1, &colorbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+    
+    //    static const GLfloat g_uv_buffer_data[] = {
+    //        1.0f,  0.0f,  0.0f,
+    //        1.0f,  0.0f,  0.0f,
+    //        1.0f,  0.0f,  0.0f
+    //    };
+    //
+    //    GLuint uvbuffer;
+    //    glGenBuffers(1, &uvbuffer);
+    //    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
+    //
+    //    GLuint Texture = loadBMP_custom("texture.bmp");
+    //    GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+    
     do{
         // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
         glClear( GL_COLOR_BUFFER_BIT );
         
-        // Draw nothing, see you in tutorial 2 !
+        // Use our shader
+        glUseProgram(programID);
+        
+        // 1rst attribute buffer : vertices
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                              0,                  // attribute 0. No particular reason for 0, but must match the layout in the vertex shader.
+                              3,                  // size
+                              GL_FLOAT,     // type
+                              GL_FALSE,    // normalized?
+                              0,                   // stride
+                              (void*)0           // array buffer offset
+                              );
+        
+        //        // Bind our texture in Texture Unit 0
+        //        glActiveTexture(GL_TEXTURE0);
+        //        glBindTexture(GL_TEXTURE_2D, Texture);
+        
+        //        // Set our "myTextureSampler" sampler to use Texture Unit 0
+        //        glUniform1i(TextureID, 0);
+        //        // 2nd attribute buffer : textures
+        //        glEnableVertexAttribArray(1);
+        //        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+        //        glVertexAttribPointer(
+        //                              1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+        //                              2,                                // size
+        //                              GL_FLOAT,                         // type
+        //                              GL_FALSE,                         // normalized?
+        //                              0,                                // stride
+        //                              (void*)0                          // array buffer offset
+        //                              );
+        
+        // The following code draws a triangle using the function void glDrawArrays(     GLenum mode,      GLint first,      GLsizei count);
+        glDrawArrays(GL_TRIANGLES, 0,indexed_vertices.size()); // first vertex: 0, count: 1 triangle is drawn. 1 triangle x 3 vertices = 3
+        
+        glDisableVertexAttribArray(0);
+        
+        glDisableVertexAttribArray(1);
         
         
         // Swap buffers
@@ -83,8 +175,14 @@ void View::update() {
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
           glfwWindowShouldClose(window) == 0 );
     
+    // Cleanup VBO and shader
+    glDeleteBuffers(1, &vertexbuffer);
+    //    glDeleteBuffers(1, &uvbuffer);
+    glDeleteProgram(programID);
+    //    glDeleteTextures(1, &Texture);
+    glDeleteVertexArrays(1, &VertexArrayID);
+    
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
     
 }
-
