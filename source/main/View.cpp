@@ -82,19 +82,31 @@ void View::update() {
     //        0.0f,  1.0f, 0.0f
     //    };
     
-    
+    //Create sphere obj
     std::vector<unsigned short> indices;
     std::vector<glm::vec3> indexed_vertices;
     std::vector<glm::vec2> indexed_uvs;
     std::vector<glm::vec3> indexed_normals;
-    bool res = loadAssImp("..//Assets//sphere1.obj", indices, indexed_vertices, indexed_uvs, indexed_normals);
+    loadAssImp("..//Assets//sphere.obj", indices, indexed_vertices, indexed_uvs, indexed_normals);
+    //bool res =
     
     GLuint vertexbuffer;
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
     
+    //Create grid obj
+    std::vector<unsigned short> grid_indices;
+    std::vector<glm::vec3> grid_indexed_vertices;
+    std::vector<glm::vec2> grid_indexed_uvs;
+    std::vector<glm::vec3> grid_indexed_normals;
+    loadAssImp("..//Assets//grid.obj", grid_indices, grid_indexed_vertices, grid_indexed_uvs, grid_indexed_normals);
+    //bool res =
     
+    GLuint grid_vertexbuffer;
+    glGenBuffers(1, &grid_vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, grid_vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, grid_indexed_vertices.size() * sizeof(glm::vec3), &grid_indexed_vertices[0], GL_STATIC_DRAW);
     
     // One color for each vertex.
     static const GLfloat g_color_buffer_data[] = {
@@ -122,6 +134,9 @@ void View::update() {
     //    GLuint Texture = loadBMP_custom("texture.bmp");
     //    GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
     
+    glm::vec3(4, 3, 3);
+    GLuint MatrixID1 = glGetUniformLocation(programID, "MVP");
+    
     do{
         // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
         glClear( GL_COLOR_BUFFER_BIT );
@@ -132,6 +147,25 @@ void View::update() {
         // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                              0,                  // attribute 0. No particular reason for 0, but must match the layout in the vertex shader.
+                              3,                  // size
+                              GL_FLOAT,     // type
+                              GL_FALSE,    // normalized?
+                              0,                   // stride
+                              (void*)0           // array buffer offset
+                              );
+        
+        // The following code draws a triangle using the function void glDrawArrays(     GLenum mode,      GLint first,      GLsizei count);
+        glDrawArrays(GL_TRIANGLES, 0,indexed_vertices.size()); // first vertex: 0, count: 1 triangle is drawn. 1 triangle x 3 vertices = 3
+        
+        glDisableVertexAttribArray(0);
+        
+        glDisableVertexAttribArray(1);
+        
+        
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, grid_vertexbuffer);
         glVertexAttribPointer(
                               0,                  // attribute 0. No particular reason for 0, but must match the layout in the vertex shader.
                               3,                  // size
@@ -160,16 +194,19 @@ void View::update() {
         //                              );
         
         // The following code draws a triangle using the function void glDrawArrays(     GLenum mode,      GLint first,      GLsizei count);
-        glDrawArrays(GL_TRIANGLES, 0,indexed_vertices.size()); // first vertex: 0, count: 1 triangle is drawn. 1 triangle x 3 vertices = 3
+        glDrawArrays(GL_TRIANGLES, 0,grid_indexed_vertices.size()); // first vertex: 0, count: 1 triangle is drawn. 1 triangle x 3 vertices = 3
         
         glDisableVertexAttribArray(0);
         
         glDisableVertexAttribArray(1);
         
-        
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
+        
+        glClear( GL_COLOR_BUFFER_BIT );
+        glm::mat4 mvp1 = getMVPMatrix();
+        glUniformMatrix4fv(MatrixID1, 1, GL_FALSE, &mvp1[0][0]);
         
     } // Check if the ESC key was pressed or the window was closed
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
@@ -177,12 +214,28 @@ void View::update() {
     
     // Cleanup VBO and shader
     glDeleteBuffers(1, &vertexbuffer);
-    //    glDeleteBuffers(1, &uvbuffer);
+//  glDeleteBuffers(1, &uvbuffer);
     glDeleteProgram(programID);
-    //    glDeleteTextures(1, &Texture);
+//  glDeleteTextures(1, &Texture);
     glDeleteVertexArrays(1, &VertexArrayID);
     
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
+    
+}
+
+glm::mat4 getMVPMatrix() {
+    
+    glm::mat4 Projection =
+    
+    glm::mat4 View =
+    
+    glm::mat4 Model = glm::mat4(1.0f); // keep an identity matrix so the geometry stays where it was placed originally
+    
+    // Our ModelViewProjection : multiplication of our 3 matrices
+
+    glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+    
+    return mvp;
     
 }
