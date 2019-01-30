@@ -70,6 +70,22 @@ int View::initialise() {
     return 1;
 }
 
+glm::mat4 getMVPMatrix() {
+    
+    glm::mat4 Projection =
+    
+    glm::mat4 View =
+    
+    glm::mat4 Model = glm::mat4(1.0f); // keep an identity matrix so the geometry stays where it was placed originally
+    
+    // Our ModelViewProjection : multiplication of our 3 matrices
+    
+    glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+    
+    return mvp;
+    
+}
+
 void View::update() {
     
     GLuint VertexArrayID;
@@ -144,7 +160,7 @@ void View::update() {
         // Use our shader
         glUseProgram(programID);
         
-        // 1rst attribute buffer : vertices
+        // 1st attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
@@ -221,21 +237,5 @@ void View::update() {
     
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
-    
-}
-
-glm::mat4 getMVPMatrix() {
-    
-    glm::mat4 Projection =
-    
-    glm::mat4 View =
-    
-    glm::mat4 Model = glm::mat4(1.0f); // keep an identity matrix so the geometry stays where it was placed originally
-    
-    // Our ModelViewProjection : multiplication of our 3 matrices
-
-    glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
-    
-    return mvp;
     
 }
